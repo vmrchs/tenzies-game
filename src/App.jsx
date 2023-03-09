@@ -9,11 +9,10 @@ function App() {
   const [tenzies, setTenzies] = React.useState(false);
   const [isExploding, setIsExploding] = React.useState(false);
   const [score, setScore] = React.useState(0);
+  const [highScore, setHighScore] = React.useState(
+    parseInt(localStorage.getItem("highScore")) || 0
+  );
   const [time, setTime] = React.useState(0);
-  const [timerOn, setTimerOn] = React.useState(false);
-
-  const NO_OF_HIGH_SCORES = 10;
-  const HIGH_SCORES = "highScores";
 
   React.useEffect(() => {
     const allHeld = dice.every((die) => die.isHeld);
@@ -23,25 +22,21 @@ function App() {
     if (allHeld && allSameValue) {
       setTenzies(true);
       setIsExploding(true);
-      setTimerOn(false);
-      checkHighScore(score);
       console.log("You won!");
     }
   }, [dice]);
 
   React.useEffect(() => {
-    let interval = null;
+    localStorage.setItem("highScore", highScore.toString());
+  }, [highScore]);
 
-    if (timerOn) {
-      interval = setInterval(() => {
-        setTime((prevTime) => prevTime + 1000);
-      });
-    } else {
-      clearInterval(interval);
+  React.useEffect(() => {
+    if (!tenzies) {
+      setTimeout(() => setTime(time + 1), 1000);
     }
 
-    return () => clearInterval(interval);
-  }, [timerOn]);
+    return clearInterval(time);
+  }, [time]);
 
   function generateNewDie() {
     return {
@@ -63,13 +58,17 @@ function App() {
 
   function rollDice() {
     if (!tenzies) {
+      setScore(score + 1);
       setDice((oldDice) =>
         oldDice.map((die) => {
           return die.isHeld ? die : generateNewDie();
         })
       );
-      setScore(score + 1);
     } else {
+      if (!highScore || score < highScore) {
+        setHighScore(score);
+      }
+
       setTenzies(false);
       setIsExploding(false);
       setScore(0);
@@ -84,16 +83,6 @@ function App() {
         return die.id === id ? { ...die, isHeld: !die.isHeld } : die;
       })
     );
-  }
-
-  function checkHighScore(score) {
-    const highScores = JSON.parse(localStorage.getItem(HIGH_SCORES)) ?? [];
-    const lowestScore = highScores[NO_OF_HIGH_SCORES - 1]?.score ?? 0;
-
-    if (score > lowestScore) {
-      saveHighScore(score, highScores); // TODO
-      showHighScores(); // TODO
-    }
   }
 
   const diceElements = dice.map((die) => (
@@ -115,9 +104,10 @@ function App() {
         its current value between rolls.
       </p>
       <div className="dice-container">{diceElements}</div>
-      <div className="score">
+      <div className="scoreContainer">
         <h3 className="time">TIME: {time}</h3>
-        <h3>ROLLS: {score}</h3>
+        <h3 className="score">ROLLS: {score}</h3>
+        {highScore ? <h3>HIGH SCORE: {highScore}</h3> : ""}
       </div>
       <button onClick={rollDice} className="roll-dice">
         {tenzies ? "New Game" : "Roll"}

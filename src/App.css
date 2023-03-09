@@ -62,13 +62,14 @@ main {
   box-shadow: inset 5px 5px 10px -3px rgba(0, 0, 0, 0.7);
 }
 
-.score {
+.scoreContainer {
   display: flex;
   flex-direction: row;
   justify-content: center;
 }
 
-.time {
+.time,
+.score {
   margin-right: 50px;
 }
 
