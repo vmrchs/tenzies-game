@@ -8,6 +8,7 @@ function App() {
   const [dice, setDice] = React.useState(allNewDice());
   const [tenzies, setTenzies] = React.useState(false);
   const [isExploding, setIsExploding] = React.useState(false);
+  const [score, setScore] = React.useState(0);
 
   React.useEffect(() => {
     const allHeld = dice.every((die) => die.isHeld);
@@ -45,9 +46,11 @@ function App() {
           return die.isHeld ? die : generateNewDie();
         })
       );
+      setScore(score + 1);
     } else {
       setTenzies(false);
       setIsExploding(false);
+      setScore(0);
       setDice(allNewDice());
     }
   }
@@ -79,6 +82,7 @@ function App() {
         its current value between rolls.
       </p>
       <div className="dice-container">{diceElements}</div>
+      <h3>SCORE: {score}</h3>
       <button onClick={rollDice} className="roll-dice">
         {tenzies ? "New Game" : "Roll"}
       </button>
