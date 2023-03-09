@@ -9,6 +9,11 @@ function App() {
   const [tenzies, setTenzies] = React.useState(false);
   const [isExploding, setIsExploding] = React.useState(false);
   const [score, setScore] = React.useState(0);
+  const [time, setTime] = React.useState(0);
+  const [timerOn, setTimerOn] = React.useState(false);
+
+  const NO_OF_HIGH_SCORES = 10;
+  const HIGH_SCORES = "highScores";
 
   React.useEffect(() => {
     const allHeld = dice.every((die) => die.isHeld);
@@ -18,9 +23,25 @@ function App() {
     if (allHeld && allSameValue) {
       setTenzies(true);
       setIsExploding(true);
+      setTimerOn(false);
+      checkHighScore(score);
       console.log("You won!");
     }
   }, [dice]);
+
+  React.useEffect(() => {
+    let interval = null;
+
+    if (timerOn) {
+      interval = setInterval(() => {
+        setTime((prevTime) => prevTime + 1000);
+      });
+    } else {
+      clearInterval(interval);
+    }
+
+    return () => clearInterval(interval);
+  }, [timerOn]);
 
   function generateNewDie() {
     return {
@@ -36,6 +57,7 @@ function App() {
       newDice.push(generateNewDie());
     }
     // console.log(newDice);
+
     return newDice;
   }
 
@@ -51,6 +73,7 @@ function App() {
       setTenzies(false);
       setIsExploding(false);
       setScore(0);
+      setTime(0);
       setDice(allNewDice());
     }
   }
@@ -61,6 +84,16 @@ function App() {
         return die.id === id ? { ...die, isHeld: !die.isHeld } : die;
       })
     );
+  }
+
+  function checkHighScore(score) {
+    const highScores = JSON.parse(localStorage.getItem(HIGH_SCORES)) ?? [];
+    const lowestScore = highScores[NO_OF_HIGH_SCORES - 1]?.score ?? 0;
+
+    if (score > lowestScore) {
+      saveHighScore(score, highScores); // TODO
+      showHighScores(); // TODO
+    }
   }
 
   const diceElements = dice.map((die) => (
@@ -82,7 +115,10 @@ function App() {
         its current value between rolls.
       </p>
       <div className="dice-container">{diceElements}</div>
-      <h3>SCORE: {score}</h3>
+      <div className="score">
+        <h3 className="time">TIME: {time}</h3>
+        <h3>ROLLS: {score}</h3>
+      </div>
       <button onClick={rollDice} className="roll-dice">
         {tenzies ? "New Game" : "Roll"}
       </button>
